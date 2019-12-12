@@ -1,14 +1,13 @@
 # frozen_string_literal: true
 
 require_relative 'light_manager'
+require 'axlsx'
 
 module Manager
-  class Runner
-    DAYS = 30
+  class Runne
     WORK_HOUR = 8
     STEP_IN_MINUTES = 15
     START = 0
-    WORKING_MINUTES = DAYS * WORK_HOUR * 60
 
     class << self
       def call
@@ -16,17 +15,33 @@ module Manager
         leds = LightManager::Leds.new
         nure_energy = LightManager::NureEnergy.new
 
-        (START...WORKING_MINUTES).step(STEP_IN_MINUTES) do |current_time|
-          nure_energy.input_power(1, user_locate(current_time))
-          leds.input_power(1)
-          print current_time
-          print " #{nure_energy.all_power}"
-          print " #{leds.all_power}\n"
-        end
+        save_sheet(nure_energy, 1, 7, 30)
+        save_sheet(leds, 1, 7, 30)        
+        save_sheet(fluorescents, 1, 7, 30)
       end
+
+      private
 
       def user_locate(time)
         time % 45 != 0
+      end
+
+      def to_minutes(days)
+        days * WORK_HOUR * 60
+      end
+
+      def save_sheet(object, *days)
+        ax = Axlsx::Package.new
+        days.each do |day|
+          ax.workbook.add_worksheet(name: "#{day}") do |sheet|
+            (START...to_minutes(day)).step(STEP_IN_MINUTES) do |current_time|
+              object.input_power(1, user_locate(current_time))
+              sheet.add_row [current_time, object.all_power]
+            end
+          end
+        end
+        ax.use_shared_strings = true
+        ax.serialize("#{object.class}.xlsx")
       end
     end
   end

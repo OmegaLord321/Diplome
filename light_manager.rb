@@ -21,7 +21,7 @@ module Manager
         @all_power = 0
       end
 
-      def input_power(time)
+      def input_power(time, _person)
         lamps.each { |lam| self.all_power += lam.power * time }
       end
     end
@@ -41,8 +41,11 @@ module Manager
     end
 
     class NureEnergy < Chandelier
+      attr_accessor :illumination
+
       def initialize
         @lamps = LightBulb.create_lamps({ power: LED_POWER, voltage: LED_VOLTAGE }, NUMBER_OF_LAMP)
+        @illumination = 0.8
         super
       end
 
