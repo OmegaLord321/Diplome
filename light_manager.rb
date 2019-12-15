@@ -22,7 +22,14 @@ module Manager
       end
 
       def input_power(time, _person)
-        lamps.each { |lam| self.all_power += lam.power * time }
+        lamps.inject(0) do |result, elem|
+          self.all_power += elem.power * time
+          result + elem.power
+        end
+      end
+
+      def input_power_now(_locale)
+        lamps.inject(0){ |result, elem| result + elem.power }
       end
     end
 
@@ -59,7 +66,12 @@ module Manager
       end
 
       def input_power(time, locale)
-        lamps.each { |lam| self.all_power += lam.power * time } if on? && locale
+        if on? && locale
+          lamps.inject(0) do |result, elem|
+            self.all_power += elem.power * time
+            result += elem.power
+          end
+        end 
       end
     end
   end
